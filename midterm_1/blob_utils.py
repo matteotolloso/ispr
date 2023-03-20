@@ -1,13 +1,17 @@
 import numpy as np
-import blob_utils
+import blob_utils as blob_utils
 from numba import njit
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
-import blob_utils
+import blob_utils as blob_utils
 
 
 def get_kernel(fun, sigma : float, size : int) -> np.array:
+    """
+    Sample the kernel function "fun" passed as an argument.
+    "Sigma" is the parameter of the function and "size" is the size of the kernel.
+    """
     
     ker = np.empty((size, size), dtype=float)
     center_cell = size//2
@@ -19,6 +23,9 @@ def get_kernel(fun, sigma : float, size : int) -> np.array:
 
 @njit
 def pad_image(image : np.array, kernel_size : int):
+    """
+    Add a border around the image based on the size of the kernel
+    """
     
     original_rows, original_cols = image.shape
 
@@ -41,20 +48,23 @@ def pad_image(image : np.array, kernel_size : int):
     return padded_image
 
 @njit
-def convolve_image(padded_image: np.array, kernel: np.array):
+def convolve_image(image: np.array, kernel: np.array):
+    """
+    Perform the convolution
+    """
     
     kernel_size = kernel.shape[0]
     kernel_radius = kernel_size // 2
     
-    original_row= padded_image.shape[0] - kernel_radius*2
-    original_col = padded_image.shape[1] - kernel_radius*2
+    original_row= image.shape[0] - kernel_radius*2
+    original_col = image.shape[1] - kernel_radius*2
     
     convolved_image = np.zeros(shape=(original_row, original_col))
 
     for i in range(original_row):
         for j in range(original_col): 
             convolved_image[i , j] = np.sum(np.multiply(
-                padded_image[i : i + kernel_size , j : j + kernel_size] ,
+                image[i : i + kernel_size , j : j + kernel_size] ,
                 kernel
             ))
     
@@ -62,6 +72,10 @@ def convolve_image(padded_image: np.array, kernel: np.array):
 
 @njit
 def local_min_max(matrix : np.array, center : tuple[int, int], radius : int):
+    """
+    Given a matrix, a center and a radius, returns the local maxima an minima in the sumbatrix centered in "center" an of size "radius".
+    For simplicity the submatrix used to find the values is squared, while the optimal solution is with a circular one.
+    """
     
     left_radius = max(0, center[0] - radius)
     right_radius = min(matrix.shape[0], center[0] + radius)
@@ -75,6 +89,9 @@ def local_min_max(matrix : np.array, center : tuple[int, int], radius : int):
 
 @njit
 def strictly_local_min_max(matrix : np.array, center : tuple[int, int], radius : int):
+    """
+    As the function "local_min_max" but exclude from the calculation of the minimum and the maximum the center point
+    """
     
     left_radius = max(0, center[0] - radius)
     right_radius = min(matrix.shape[0], center[0] + radius + 1)
@@ -95,6 +112,10 @@ def strictly_local_min_max(matrix : np.array, center : tuple[int, int], radius :
 
 @njit
 def get_centers(convolved_image, blob_radius, kernel_size, percentile ):
+    """
+    Using the function "strictly_local_min_max" returns a list of the point that are local maximum or minimum give the radius
+    to consider. Exclude also the point that are not above or below the tresholds.
+    """
     
     centers = []
 
@@ -114,7 +135,10 @@ def get_centers(convolved_image, blob_radius, kernel_size, percentile ):
     return centers
 
 
-def full_pipeline(path, kernel_size, sigma, percentile):
+def full_pipeline(path, kernel_size, sigma, percentile, line_tickness):
+    """
+    Preform all the steps togheter for a single image
+    """
     
     def LoG(x, y, sigma) -> float:
         pi = np.pi
@@ -129,7 +153,7 @@ def full_pipeline(path, kernel_size, sigma, percentile):
         (-1, 1)
     )
     convolved_image = blob_utils.convolve_image(
-        padded_image=gray_image, 
+        image=gray_image, 
         kernel=kernel
     )
     blob_radius = int (np.sqrt(2) * sigma) + 1
@@ -150,7 +174,7 @@ def full_pipeline(path, kernel_size, sigma, percentile):
             (j, i), 
             blob_radius, 
             color, 
-            thickness=2, 
+            thickness=line_tickness, 
             lineType=2
         )
 
