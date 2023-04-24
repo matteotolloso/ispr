@@ -1,0 +1,3 @@
+[submodule "midterm_3/char-rnn-pytorch"]
+	path = midterm_3/char-rnn-pytorch
+	url = https://github.com/matteotolloso/char-rnn-pytorch.git
