@@ -5,27 +5,30 @@ import torch.nn as nn
 from torch.autograd import Variable
 import argparse
 import os
-
 from tqdm import tqdm
-
 from helpers import *
 from model import *
 from generate import *
+from generate import _generate
+
+chunk_len = 169
 
 # Parse command line arguments
 argparser = argparse.ArgumentParser()
-argparser.add_argument('filename', type=str)
+argparser.add_argument('--filename', type=str, default='/home/matteo/ispr/midterm_3/dataset/lercio_padded.txt')
 argparser.add_argument('--model', type=str, default="gru")
-argparser.add_argument('--n_epochs', type=int, default=2000)
+argparser.add_argument('--n_epochs', type=int, default=6000)
 argparser.add_argument('--print_every', type=int, default=100)
-argparser.add_argument('--hidden_size', type=int, default=100)
-argparser.add_argument('--n_layers', type=int, default=2)
+argparser.add_argument('--hidden_size', type=int, default=500)
+argparser.add_argument('--n_layers', type=int, default=1)
 argparser.add_argument('--learning_rate', type=float, default=0.01)
-argparser.add_argument('--chunk_len', type=int, default=168)
+argparser.add_argument('--chunk_len', type=int, default=chunk_len)
 argparser.add_argument('--batch_size', type=int, default=100)
 argparser.add_argument('--shuffle', action='store_true')
 argparser.add_argument('--cuda', action='store_true')
 args = argparser.parse_args()
+
+args.cuda = True
 
 if args.cuda:
     print("Using CUDA")
@@ -99,7 +102,7 @@ try:
 
         if epoch % args.print_every == 0:
             print('[%s (%d %d%%) %.4f]' % (time_since(start), epoch, epoch / args.n_epochs * 100, loss))
-            print(generate(decoder, 'Wh', 100, cuda=args.cuda), '\n')
+            print(_generate(decoder, prime_str='^', predict_len=chunk_len, temperature = 0.5, cuda=args.cuda), '\n')
 
     print("Saving...")
     save()

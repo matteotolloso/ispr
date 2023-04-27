@@ -36,13 +36,13 @@ def _generate(decoder, prime_str, predict_len, temperature, cuda):
     return predicted
 
 # Run as standalone script
-def generate(filename : str, temperature : float):
+def generate(filename : str, temperature : float, predict_len : int = 168):
 
     prime_str = '^'
     cuda = True
 
-    decoder = torch.load(filename,  map_location=torch.device('cpu'))
-    print(_generate(decoder, prime_str=prime_str, predict_len=168, temperature=temperature, cuda = cuda ))
+    decoder = torch.load(filename)
+    return _generate(decoder, prime_str=prime_str, predict_len=predict_len, temperature=temperature, cuda = cuda )
 
 if __name__ == '__main__':
     generate('lercio_padded.pt', 0.8)
