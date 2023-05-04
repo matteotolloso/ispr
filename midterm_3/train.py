@@ -17,7 +17,7 @@ chunk_len = 169
 argparser = argparse.ArgumentParser()
 argparser.add_argument('--filename', type=str, default='/home/matteo/ispr/midterm_3/dataset/lercio_padded.txt')
 argparser.add_argument('--model', type=str, default="gru")
-argparser.add_argument('--n_epochs', type=int, default=6000)
+argparser.add_argument('--n_epochs', type=int, default=18000)
 argparser.add_argument('--print_every', type=int, default=100)
 argparser.add_argument('--hidden_size', type=int, default=400)
 argparser.add_argument('--n_layers', type=int, default=4)
